@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:munit-tools="http://www.mulesoft.org/schema/mule/munit-tools"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xsi:schemaLocation="
+		http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+		http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+		http://www.mulesoft.org/schema/mule/munit-tools  http://www.mulesoft.org/schema/mule/munit-tools/current/mule-munit-tools.xsd">
+	<munit:config name="sftpdemo-suite.xml" />
+	<munit:test name="sftpdemoFlow-test" doc:id="ccd9ff1c-1780-4c41-882c-035919d72787" >
+		<munit:behavior >
+			<munit:set-event doc:name="Set Input" doc:id="56955392-2993-405f-b4dd-456d2a26ce41" >
+				<munit:payload value="#[output application/json  --- readUrl('classpath://sftpdemoFlowtest\set-event_payload.dwl')]" encoding="UTF-8" mediaType="application/json " />
+				<munit:attributes value="#[readUrl('classpath://sftpdemoFlowtest\set-event_attributes.dwl')]" />
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to sftpdemoFlow" doc:id="3d6583ae-eb1d-4e1f-844c-20fa4a17028d" name="sftpdemoFlow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Assert payload" doc:id="a6d7a0d9-877f-42c0-81f8-c0a0ba05bc00" message="The payload does not match">
+				<munit-tools:that ><![CDATA[#[%dw 2.0
+import sftpdemoFlowtest::assert_expression_payload
+---
+assert_expression_payload::main({payload: payload, attributes: attributes, vars: vars})]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+	<munit:test name="sftpdemoFlow-test-success" doc:id="05456c2b-cf03-4e00-a624-f48374a4fe98" >
+		<munit:behavior >
+			<munit-tools:mock-when doc:name="Mock Read" doc:id="7b5e30a1-432c-4209-8e9d-7e04e6c033a5" processor="sftp:read">
+				<munit-tools:with-attributes >
+					<munit-tools:with-attribute whereValue="3bfe971c-2fed-48cb-bece-42eb8d0b13e6" attributeName="doc:id" />
+				</munit-tools:with-attributes>
+				<munit-tools:then-return >
+					<munit-tools:payload value="#[output text/plain  --- readUrl('classpath://sftpdemoFlowtestsuccess\mock_payload.dwl')]" mediaType="text/plain " encoding="UTF-8" />
+					<munit-tools:attributes value="#[readUrl('classpath://sftpdemoFlowtestsuccess\mock_attributes.dwl')]" />
+				</munit-tools:then-return>
+			</munit-tools:mock-when>
+			<munit:set-event doc:name="Set Input" doc:id="19dd890e-1639-4410-b534-8cb00a25238f" >
+				<munit:payload value="#[output application/json  --- readUrl('classpath://sftpdemoFlowtestsuccess\set-event_payload.dwl')]" encoding="UTF-8" mediaType="application/json " />
+				<munit:attributes value="#[readUrl('classpath://sftpdemoFlowtestsuccess\set-event_attributes.dwl')]" />
+			</munit:set-event>
+		</munit:behavior>
+		<munit:execution >
+			<flow-ref doc:name="Flow-ref to sftpdemoFlow" doc:id="099e1952-9ee7-4b59-8ab3-6107569a902d" name="sftpdemoFlow"/>
+		</munit:execution>
+		<munit:validation >
+			<munit-tools:assert doc:name="Assert payload" doc:id="1059100d-a6b0-4b78-a786-93c4753bf881" message="The payload does not match">
+				<munit-tools:that ><![CDATA[#[%dw 2.0
+import sftpdemoFlowtestsuccess::assert_expression_payload
+---
+assert_expression_payload::main({payload: payload, attributes: attributes, vars: vars})]]]></munit-tools:that>
+			</munit-tools:assert>
+		</munit:validation>
+	</munit:test>
+
+
+</mule>
