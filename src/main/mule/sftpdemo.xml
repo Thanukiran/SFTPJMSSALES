@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns:jms="http://www.mulesoft.org/schema/mule/jms"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:sftp="http://www.mulesoft.org/schema/mule/sftp" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/sftp http://www.mulesoft.org/schema/mule/sftp/current/mule-sftp.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="52228b74-2ea8-4d53-9a89-028a5aad8b17" >
+		<http:listener-connection host="0.0.0.0" port="8081" />
+	</http:listener-config>
+	<sftp:config name="SFTP_Config" doc:name="SFTP Config" doc:id="acc853c9-ab09-4321-9f6b-7e593bd69384" >
+		<sftp:connection host="localhost" username="thanu" password="welcome123$" />
+	</sftp:config>
+	<sftp:matcher name="Matcher" doc:name="Matcher" doc:id="87c37f10-6048-4e6e-af07-5cf80ad3e7d0" />
+	<jms:config name="JMS_Config" doc:name="JMS Config" doc:id="9651fa34-6422-4473-a97c-26dd7dd1730c" >
+		<jms:active-mq-connection username="admin" password="admin" >
+			<jms:factory-configuration brokerUrl="tcp://DESKTOP-AISO2OC:61616" />
+		</jms:active-mq-connection>
+	</jms:config>
+	<salesforce:sfdc-config name="Salesforce_Config" doc:name="Salesforce Config" doc:id="8f349144-c58f-45f6-8064-87092d184241" >
+		<salesforce:basic-connection username=" thanuja.chittamuru12@gmail.com" password="Govindha123$" securityToken="qfJnS4kMI5iwfOR9kMLwOkGl"/>
+	</salesforce:sfdc-config>
+	<flow name="sftpdemoFlow" doc:id="525d2ab9-c0aa-4c27-93f6-133deb40ca60" >
+		<http:listener doc:name="Listener" doc:id="d78e09ff-631d-4a28-9218-87d016ffe79b" config-ref="HTTP_Listener_config" path="/sftp"/>
+		<sftp:read doc:name="Read" doc:id="3bfe971c-2fed-48cb-bece-42eb8d0b13e6" config-ref="SFTP_Config" path="/testdemo/demo/meetingroom.xml"/>
+		<jms:publish doc:name="Publish" doc:id="bc8c02ae-f640-4ee0-b54b-fe80f74316f0" config-ref="JMS_Config" destination="sample" sendCorrelationId="ALWAYS" persistentDelivery="true"/>
+		<ee:transform doc:name="Transform Message" doc:id="4e91f6aa-0cff-4c90-aa82-f34817e270d8" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+"successfully updated"]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="a2936c9a-a39a-4b2c-91f9-51a6c60beac3" type="SFTP:CONNECTIVITY">
+				<logger level="INFO" doc:name="Logger" doc:id="60a9c705-8d79-4ff9-ae12-6f5f2c721284" message='"Please Check the SFTP Config details"' />
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="sftpdemoFlow3" doc:id="7ee7b967-067a-41a0-8fc9-d9ad3d204036">
+		<http:listener doc:name="Listener" doc:id="84d0aa7f-ffda-4318-9377-c91045f9204d" config-ref="HTTP_Listener_config" path="/jmsconsume"/>
+		<jms:consume doc:name="Consume" doc:id="2b1ef1b9-5c95-473e-865e-513952adfe16" config-ref="JMS_Config" destination="sample" ackMode="IMMEDIATE"/>
+		<ee:transform doc:name="Transform Message" doc:id="c6c520e7-340b-4c20-baff-e3eabdcf222f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+[{
+	To_Name__c: payload.Note.To,
+	From_Name__c: payload.Note.From,
+	Meeting_Time__c: payload.Note.hour,
+	Meeting_Date__c: payload.Note.date
+}]]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<salesforce:create doc:name="Create" doc:id="8547a129-2751-460d-b8ee-bb899840f095" config-ref="Salesforce_Config" type="meetingroom__c">
+		</salesforce:create>
+		<ee:transform doc:name="Transform Message" doc:id="784ccaae-c501-4b5d-89aa-89394dac5867" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="sftpdemoFlow2" doc:id="1b62ba68-03f7-485d-9d30-57176d71c21e" >
+		<http:listener doc:name="Listener" doc:id="5f01343e-4aeb-40c3-92c3-b447077d980c" config-ref="HTTP_Listener_config" path="/sftpwrite"/>
+		<sftp:write doc:name="Write" doc:id="6888539e-91e0-4dfd-a9ee-a2195bc1d72d" config-ref="SFTP_Config" path="/testdemo/demo/meetingroom.xml"/>
+		<ee:transform doc:name="Transform Message" doc:id="5b2d5aa8-6229-4146-8e13-3c2591be586d" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="sftpdemoFlow1" doc:id="60e1a7a7-bae4-4e19-ab8e-26a1bc84d987" initialState="stopped">
+		<sftp:listener doc:name="On New or Updated File" doc:id="ee3d1def-e40f-4e46-87fc-4824f493cc3e" config-ref="SFTP_Config" directory="/testdemo/demo" timeBetweenSizeCheckUnit="MILLISECONDS" recursive="false" overwrite="true" applyPostActionWhenFailed="false">
+			<scheduling-strategy >
+				<fixed-frequency frequency="10" timeUnit="HOURS"/>
+			</scheduling-strategy>
+		</sftp:listener>
+		<logger level="INFO" doc:name="Logger" doc:id="487dbe23-079f-46b0-833a-623fbf7cc78c" message="#[payload]"/>
+	</flow>
+</mule>
