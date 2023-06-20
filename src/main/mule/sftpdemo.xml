@@ -35,6 +35,7 @@ output application/json
 "successfully updated"]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="79dfea92-f6fb-4352-85bf-64418793b8e7" message="#[payload]"/>
 		<error-handler >
 			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="a2936c9a-a39a-4b2c-91f9-51a6c60beac3" type="SFTP:CONNECTIVITY">
 				<logger level="INFO" doc:name="Logger" doc:id="60a9c705-8d79-4ff9-ae12-6f5f2c721284" message='"Please Check the SFTP Config details"' />

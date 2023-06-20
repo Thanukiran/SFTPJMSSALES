@@ -41,7 +41,12 @@
 							<artifactId>activemq-broker</artifactId>
 						</sharedLibrary>
 					</sharedLibraries>
+					
 				</configuration>
+				
+
+
+			
 			</plugin>
 			<plugin>
 				<groupId>com.mulesoft.munit.tools</groupId>
