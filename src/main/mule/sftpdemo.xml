@@ -68,6 +68,7 @@ output application/json
 payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="bd7adc4c-8cb6-43a5-8a0a-9f809cf83a2f" message='*********** "successfully updated into salesforce" *****************'/>
 	</flow>
 	<flow name="sftpdemoFlow2" doc:id="1b62ba68-03f7-485d-9d30-57176d71c21e" >
 		<http:listener doc:name="Listener" doc:id="5f01343e-4aeb-40c3-92c3-b447077d980c" config-ref="HTTP_Listener_config" path="/sftpwrite"/>
